@@ -164,12 +164,14 @@ function formatBytes(bytes) {
 }
 
 function appendConsoleLine(text, type = 'system') {
+    if (!text || !text.trim()) return;
+    
     const line = document.createElement('div');
     line.className = `console-line ${type}-line`;
     
     if (text.startsWith('[ERROR]')) {
         line.className = 'console-line error-line';
-        text = text.substring(7);
+        text = text.substring(7).trim();
     } else if (text.startsWith('=====') || text.includes('SUMMARY') || text.includes('RESULT')) {
         line.className = 'console-line info-line';
     } else if (text.startsWith('WARNING:') || text.startsWith('Peringatan:')) {
@@ -178,7 +180,10 @@ function appendConsoleLine(text, type = 'system') {
         line.className = 'console-line success-line';
     }
 
-    line.textContent = text;
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0];
+    line.textContent = `[${timeStr}] ${text}`;
+    
     consoleOutput.appendChild(line);
     consoleOutput.scrollTop = consoleOutput.scrollHeight;
 }

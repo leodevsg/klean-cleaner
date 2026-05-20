@@ -8,9 +8,9 @@ function createWindow() {
     // Create the browser window.
     const win = new BrowserWindow({
         width: 1024,
-        height: 768,
-        minWidth: 900,
-        minHeight: 650,
+        height: 820,
+        resizable: false,
+        maximizable: false,
         title: 'Klean - Windows Optimizer',
         icon: path.join(__dirname, 'public', 'icon.png'),
         webPreferences: {

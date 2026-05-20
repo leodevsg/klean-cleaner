@@ -54,14 +54,13 @@ body {
 
 /* App Container Layout */
 .app-container {
-    width: 95vw;
-    max-width: 1200px;
-    height: 92vh;
-    max-height: 850px;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 10px;
+    padding: 16px;
+    box-sizing: border-box;
 }
 
 /* Header Area */

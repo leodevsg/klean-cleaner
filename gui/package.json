@@ -1,0 +1,40 @@
+{
+  "name": "klean-cleaner",
+  "version": "1.0.0",
+  "description": "Simple and Premium Cleaner App GUI",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-packager . Klean --platform=win32 --arch=x64 --out=dist --overwrite --icon=public/icon.ico",
+    "build:installer": "electron-builder --win --x64"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "electron": "^29.3.0",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2",
+    "jimp": "^1.6.1",
+    "png-to-ico": "^3.0.1"
+  },
+  "build": {
+    "appId": "com.klean.cleaner",
+    "productName": "Klean",
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Klean"
+    },
+    "files": [
+      "**/*",
+      "!dist/*"
+    ]
+  }
+}

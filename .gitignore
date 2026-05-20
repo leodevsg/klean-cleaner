@@ -1,0 +1,20 @@
+# Node.js dependencies
+gui/node_modules/
+node_modules/
+package-lock.json
+
+# Build outputs
+gui/dist/
+dist/
+
+# Log files and temp lists
+*.log
+gui/tier3-orphans.txt
+tier3-orphans.txt
+
+# Local IDEs / System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini

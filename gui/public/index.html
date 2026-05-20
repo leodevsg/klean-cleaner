@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klean - Smart &amp; Fast Windows Cleaner</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Core CSS stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header / Logo -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fa-solid fa-wind-effects"></i></div>
+                <div class="logo-text">
+                    <h1>Klean</h1>
+                    <span>Windows Optimization System</span>
+                </div>
+            </div>
+            
+            <div class="header-status">
+                <div id="admin-status" class="status-pill status-loading">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Checking Access Rights...</span>
+                </div>
+                <button id="refresh-btn" class="icon-btn" title="Reload Status"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <!-- Left Panel: Navigation & Context Cards -->
+            <section class="panel-left">
+                <!-- Navigation Tabs Card -->
+                <div class="card glass-card nav-card">
+                    <nav class="sidebar-nav">
+                        <button class="nav-tab active" data-tab="cleaner">
+                            <i class="fa-solid fa-broom text-cyan"></i>
+                            <span>System Cleaner</span>
+                        </button>
+                        <button class="nav-tab" data-tab="startup">
+                            <i class="fa-solid fa-rocket text-purple"></i>
+                            <span>Startup Manager</span>
+                        </button>
+                        <button class="nav-tab" data-tab="quarantine">
+                            <i class="fa-solid fa-shield-halved text-green"></i>
+                            <span>File Quarantine</span>
+                        </button>
+                        <button class="nav-tab" data-tab="monitor">
+                            <i class="fa-solid fa-chart-line text-blue"></i>
+                            <span>System Monitor</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Context Card 1: Cleaner Tab -->
+                <div class="card glass-card disk-card tab-content-left" data-tab="cleaner">
+                    <h2>C: Drive Capacity</h2>
+                    <div class="gauge-container">
+                        <svg class="progress-ring" width="160" height="160">
+                            <circle class="progress-ring__circle-bg" stroke="rgba(255, 255, 255, 0.05)" stroke-width="10" fill="transparent" r="60" cx="80" cy="80" />
+                            <circle id="disk-gauge" class="progress-ring__circle" stroke="url(#cyan-grad)" stroke-width="10" stroke-linecap="round" fill="transparent" r="60" cx="80" cy="80" />
+                            <defs>
+                                <linearGradient id="cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#00f0ff" />
+                                    <stop offset="100%" stop-color="#0066ff" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="gauge-value">
+                            <span id="disk-percent" class="percent">--%</span>
+                            <span class="label">Used</span>
+                        </div>
+                    </div>
+                    <div class="disk-stats">
+                        <div class="stat-item">
+                            <span class="stat-lbl"><i class="fa-solid fa-hdd text-cyan"></i> Total</span>
+                            <span id="disk-total" class="stat-val">-- GB</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-lbl"><i class="fa-solid fa-chart-pie text-blue"></i> Used</span>
+                            <span id="disk-used" class="stat-val">-- GB</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-lbl"><i class="fa-solid fa-leaf text-green"></i> Free</span>
+                            <span id="disk-free" class="stat-val">-- GB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card glass-card info-card tab-content-left" data-tab="cleaner">
+                    <h3><i class="fa-solid fa-shield-halved text-cyan"></i> Need Admin Rights?</h3>
+                    <p>Some cleanup tasks require Administrator access to stop system services and remove protected system files.</p>
+                    <div id="admin-notice" class="admin-alert hide">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span><strong>IMPORTANT:</strong> Run the program as Administrator for full cleanup capabilities.</span>
+                    </div>
+                </div>
+
+                <!-- Context Card 2: Startup Tab -->
+                <div class="card glass-card info-card tab-content-left hide" data-tab="startup">
+                    <h3><i class="fa-solid fa-rocket text-purple"></i> Optimize Boot Time</h3>
+                    <p>Startup programs launch automatically when Windows boots. Disabling heavy or unnecessary apps will speed up your PC's boot time.</p>
+                    <div class="admin-alert success-alert">
+                        <i class="fa-solid fa-circle-info text-purple"></i>
+                        <span>Choose startup applications you rarely use and change their status to disabled.</span>
+                    </div>
+                </div>
+
+                <!-- Context Card 3: Quarantine Tab -->
+                <div class="card glass-card info-card tab-content-left hide" data-tab="quarantine">
+                    <h3><i class="fa-solid fa-shield-virus text-green"></i> Quarantine Manager</h3>
+                    <p>This menu displays orphaned installer files (MSI/MSP) moved from `C:\Windows\Installer` to free up system space.</p>
+                    <div class="admin-alert warn-alert">
+                        <i class="fa-solid fa-triangle-exclamation text-yellow"></i>
+                        <span>Keep these files for at least 7 days. If no installed software exhibits issues, you can delete them permanently.</span>
+                    </div>
+                </div>
+
+                <!-- Context Card 4: Monitor Tab -->
+                <div class="card glass-card info-card tab-content-left hide" data-tab="monitor">
+                    <h3><i class="fa-solid fa-desktop text-blue"></i> System Information</h3>
+                    <p>Details of the hardware and Windows operating system running on your PC.</p>
+                    <div class="sys-specs-list">
+                        <div class="spec-item">
+                            <span class="spec-lbl">OS</span>
+                            <span id="spec-os" class="spec-val">Loading...</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-lbl">CPU</span>
+                            <span id="spec-cpu" class="spec-val">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Main Dynamic Sections -->
+            <section class="panel-right">
+                <!-- Section 1: Cleaner Tab -->
+                <div class="card glass-card checklist-card tab-content-right" data-tab="cleaner">
+                    <div class="card-header">
+                        <h2>Cleanup Categories</h2>
+                        <div class="checklist-actions">
+                            <button id="select-all-btn" class="text-link">Select All</button>
+                            <span class="divider">|</span>
+                            <button id="deselect-all-btn" class="text-link">Deselect All</button>
+                        </div>
+                    </div>
+
+                    <div class="categories-list">
+                        <div class="category-item" data-category="temp">
+                            <div class="cat-checkbox">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" id="chk-temp" checked>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="cat-info">
+                                <div class="cat-header-row">
+                                    <span class="cat-title"><i class="fa-solid fa-folder-open text-cyan"></i> System Temporary Files (Temp)</span>
+                                    <span class="risk-badge risk-low">Low Risk</span>
+                                </div>
+                                <p class="cat-desc">Temporary files created by Windows and applications. Perfectly safe to delete.</p>
+                            </div>
+                            <div class="cat-size">
+                                <span class="size-val" id="size-temp">Waiting...</span>
+                                <div class="scanner-dot hide" id="scan-dot-temp"></div>
+                            </div>
+                        </div>
+
+                        <div class="category-item" data-category="update">
+                            <div class="cat-checkbox">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" id="chk-update" checked>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="cat-info">
+                                <div class="cat-header-row">
+                                    <span class="cat-title"><i class="fa-solid fa-download text-purple"></i> Windows Update Cache</span>
+                                    <span class="risk-badge risk-med">Medium Risk</span>
+                                </div>
+                                <p class="cat-desc">Old downloaded Windows update files. Requires briefly stopping the wuauserv service during cleanup.</p>
+                            </div>
+                            <div class="cat-size">
+                                <span class="size-val" id="size-update">Waiting...</span>
+                                <div class="scanner-dot hide" id="scan-dot-update"></div>
+                            </div>
+                        </div>
+
+                        <div class="category-item" data-category="deliveryOpt">
+                            <div class="cat-checkbox">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" id="chk-deliveryOpt" checked>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="cat-info">
+                                <div class="cat-header-row">
+                                    <span class="cat-title"><i class="fa-solid fa-network-wired text-blue"></i> Delivery Optimization Cache</span>
+                                    <span class="risk-badge risk-low">Low Risk</span>
+                                </div>
+                                <p class="cat-desc">Temporary cache of update files distributed to other PCs on your local network.</p>
+                            </div>
+                            <div class="cat-size">
+                                <span class="size-val" id="size-deliveryOpt">Waiting...</span>
+                                <div class="scanner-dot hide" id="scan-dot-deliveryOpt"></div>
+                            </div>
+                        </div>
+
+                        <div class="category-item" data-category="recycleBin">
+                            <div class="cat-checkbox">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" id="chk-recycleBin" checked>
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="cat-info">
+                                <div class="cat-header-row">
+                                    <span class="cat-title"><i class="fa-solid fa-trash-can text-red"></i> Recycle Bin</span>
+                                    <span class="risk-badge risk-low">Low Risk</span>
+                                </div>
+                                <p class="cat-desc">Permanently empties all files that you have deleted to the Windows Recycle Bin.</p>
+                            </div>
+                            <div class="cat-size">
+                                <span class="size-val" id="size-recycleBin">Waiting...</span>
+                                <div class="scanner-dot hide" id="scan-dot-recycleBin"></div>
+                            </div>
+                        </div>
+
+                        <div class="category-item" data-category="installers">
+                            <div class="cat-checkbox">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" id="chk-installers">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="cat-info">
+                                <div class="cat-header-row">
+                                    <span class="cat-title"><i class="fa-solid fa-box-open text-orange"></i> Orphaned Installers (MSI/MSP)</span>
+                                    <span class="risk-badge risk-high">Quarantine</span>
+                                </div>
+                                <p class="cat-desc">Detects broken/unused installer files in C:\Windows\Installer and safely moves them to a Quarantine folder on D:.</p>
+                            </div>
+                            <div class="cat-size">
+                                <span class="size-val" id="size-installers">Waiting...</span>
+                                <div class="scanner-dot hide" id="scan-dot-installers"></div>
+                            </div>
+                        </div>
+
+                        <div class="category-item dism-item" data-category="dism">
+                            <div class="cat-checkbox">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" id="chk-dism">
+                                    <span class="checkmark"></span>
+                                </label>
+                            </div>
+                            <div class="cat-info">
+                                <div class="cat-header-row">
+                                    <span class="cat-title"><i class="fa-solid fa-gears text-yellow"></i> Deep System Optimization (DISM ResetBase)</span>
+                                    <span class="risk-badge risk-high">Takes Time</span>
+                                </div>
+                                <p class="cat-desc">Analyzes &amp; cleans up the Windows component store. <strong>Warning:</strong> This process takes 5-15 minutes.</p>
+                            </div>
+                            <div class="cat-size">
+                                <span class="size-val" id="size-dism">Deep Action</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-bar">
+                        <button id="scan-btn" class="btn btn-secondary"><i class="fa-solid fa-magnifying-glass"></i> Scan System</button>
+                        <button id="clean-btn" class="btn btn-primary" disabled><i class="fa-solid fa-broom-wide"></i> Clean Selected</button>
+                    </div>
+                </div>
+
+                <!-- Section 2: Startup Manager -->
+                <div class="card glass-card checklist-card tab-content-right hide" data-tab="startup">
+                    <div class="card-header">
+                        <h2>Windows Startup Manager</h2>
+                        <button id="refresh-startup-btn" class="btn btn-icon-only" title="Reload Startup"><i class="fa-solid fa-arrows-rotate"></i></button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>Program Name</th>
+                                    <th>Command / Path</th>
+                                    <th>Hive</th>
+                                    <th style="width: 100px; text-align: center;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="startup-table-body">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Loading startup programs...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 3: Quarantine Manager -->
+                <div class="card glass-card checklist-card tab-content-right hide" data-tab="quarantine">
+                    <div class="card-header">
+                        <h2>Quarantined Installer Files</h2>
+                        <div class="checklist-actions">
+                            <button id="refresh-quarantine-btn" class="btn btn-icon-only" title="Reload Quarantine"><i class="fa-solid fa-arrows-rotate"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px; text-align: center;">
+                                        <label class="custom-checkbox">
+                                            <input type="checkbox" id="chk-quarantine-all">
+                                            <span class="checkmark"></span>
+                                        </label>
+                                    </th>
+                                    <th>File Name</th>
+                                    <th>Size</th>
+                                    <th>Date Quarantined</th>
+                                    <th>Quarantine Folder</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quarantine-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No files currently in quarantine.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="action-bar flex-end">
+                        <button id="restore-quarantine-btn" class="btn btn-secondary" disabled><i class="fa-solid fa-rotate-left"></i> Restore Selected</button>
+                        <button id="delete-quarantine-btn" class="btn btn-danger" disabled><i class="fa-solid fa-trash-can"></i> Delete Permanently</button>
+                    </div>
+                </div>
+
+                <!-- Section 4: System Monitor -->
+                <div class="card glass-card checklist-card tab-content-right hide" data-tab="monitor">
+                    <div class="card-header">
+                        <h2>Real-Time System Performance</h2>
+                        <span class="status-msg"><i class="fa-solid fa-pulse fa-heartbeat"></i> Live Monitoring</span>
+                    </div>
+
+                    <div class="monitor-dashboard">
+                        <!-- CPU Gauge -->
+                        <div class="monitor-widget">
+                            <h3>CPU Usage</h3>
+                            <div class="gauge-container">
+                                <svg class="progress-ring" width="160" height="160">
+                                    <circle class="progress-ring__circle-bg" stroke="rgba(255, 255, 255, 0.05)" stroke-width="10" fill="transparent" r="60" cx="80" cy="80" />
+                                    <circle id="cpu-gauge" class="progress-ring__circle" stroke="var(--color-cyan)" stroke-width="10" stroke-linecap="round" fill="transparent" r="60" cx="80" cy="80" />
+                                </svg>
+                                <div class="gauge-value">
+                                    <span id="cpu-percent" class="percent text-cyan">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RAM Gauge -->
+                        <div class="monitor-widget">
+                            <h3>RAM Usage</h3>
+                            <div class="gauge-container">
+                                <svg class="progress-ring" width="160" height="160">
+                                    <circle class="progress-ring__circle-bg" stroke="rgba(255, 255, 255, 0.05)" stroke-width="10" fill="transparent" r="60" cx="80" cy="80" />
+                                    <circle id="ram-gauge" class="progress-ring__circle" stroke="var(--color-blue)" stroke-width="10" stroke-linecap="round" fill="transparent" r="60" cx="80" cy="80" />
+                                </svg>
+                                <div class="gauge-value">
+                                    <span id="ram-percent" class="percent text-blue">0%</span>
+                                </div>
+                            </div>
+                            <span id="ram-details" class="widget-details">0 GB / 0 GB</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom: Real-Time Console -->
+        <footer class="app-console">
+            <div class="console-header">
+                <div class="console-title"><i class="fa-solid fa-terminal"></i> Real-Time PowerShell Console Log</div>
+                <div class="console-actions">
+                    <span id="current-action" class="status-msg">Ready</span>
+                    <button id="clear-console-btn" class="text-btn" title="Clear Screen"><i class="fa-solid fa-trash-arrow-up"></i> Clear</button>
+                </div>
+            </div>
+            <div class="console-body" id="console-output">
+                <div class="console-line system-line">[SYSTEM] Welcome to Klean Elite. Run a cleanup or navigate tabs to optimize your PC...</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Celebration Overlay Modal -->
+    <div id="celebration-modal" class="modal-overlay hide">
+        <div class="modal-content glass-card card-glow">
+            <div class="modal-header-decor">
+                <i class="fa-solid fa-circle-check celebration-icon"></i>
+            </div>
+            <h2>Cleanup Completed!</h2>
+            <p>Your system is now clean and optimized.</p>
+            <div class="savings-showcase">
+                <span class="savings-lbl">Disk Space Reclaimed</span>
+                <span id="saved-space-amount" class="savings-amount">0.00 GB</span>
+            </div>
+            <button id="modal-close-btn" class="btn btn-primary">Back to Dashboard</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

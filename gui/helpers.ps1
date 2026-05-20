@@ -10,12 +10,13 @@ function Get-StartupPrograms {
     $results = @()
     
     function Scan-Key($path, $hive, $status) {
+        $localResults = @()
         if (Test-Path $path) {
             try {
                 $key = Get-Item -LiteralPath $path -ErrorAction Stop
                 foreach ($valName in $key.GetValueNames()) {
                     $val = $key.GetValue($valName)
-                    $results += [PSCustomObject]@{
+                    $localResults += [PSCustomObject]@{
                         name = $valName
                         command = $val
                         hive = $hive
@@ -24,13 +25,17 @@ function Get-StartupPrograms {
                 }
             } catch {}
         }
+        return $localResults
     }
     
-    Scan-Key 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' 'HKCU' 'Enabled'
-    Scan-Key 'HKCU:\Software\Klean\DisabledStartup' 'HKCU' 'Disabled'
-    Scan-Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run' 'HKLM' 'Enabled'
-    Scan-Key 'HKLM:\Software\Klean\DisabledStartup' 'HKLM' 'Disabled'
+    $results += Scan-Key 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' 'HKCU' 'Enabled'
+    $results += Scan-Key 'HKCU:\Software\Klean\DisabledStartup' 'HKCU' 'Disabled'
+    $results += Scan-Key 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run' 'HKLM' 'Enabled'
+    $results += Scan-Key 'HKLM:\Software\Klean\DisabledStartup' 'HKLM' 'Disabled'
     
+    if ($results.Count -eq 0) {
+        return "[]"
+    }
     return $results | ConvertTo-Json -Compress
 }
 

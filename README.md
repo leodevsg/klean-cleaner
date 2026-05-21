@@ -1,8 +1,20 @@
-# Klean - Smart & Fast Windows Optimizer
+<p align="center">
+  <img src="assets/logo.png" alt="Klean Logo" width="120" height="120">
+</p>
 
-Klean is a modern, premium-looking desktop application built with Electron, Express, and PowerShell to help you clean, optimize, and monitor your Windows system. Unlike typical cleaning software, Klean offers specialized tools like **Orphaned MSI/MSP Installer Quarantine**, alongside classic junk file cleanup, startup management, and real-time performance monitoring.
+<h1 align="center">Klean - Smart & Fast Windows Optimizer</h1>
+
+<p align="center">
+  <strong>A modern, premium-looking desktop utility for system cleanup and performance monitoring on Windows.</strong>
+</p>
+
+<p align="center">
+  <img src="assets/screenshot.png" alt="Klean Dashboard Screenshot" width="800">
+</p>
 
 ---
+
+**Klean** is a modern, premium-looking desktop application built with Electron, Express, and PowerShell to help you clean, optimize, and monitor your Windows system. Unlike typical cleaning software, Klean offers specialized tools like **Orphaned MSI/MSP Installer Quarantine**, alongside classic junk file cleanup, startup management, and real-time performance monitoring.
 
 ## 🚀 Key Features
 

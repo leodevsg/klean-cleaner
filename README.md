@@ -32,9 +32,16 @@ Klean is a modern, premium-looking desktop application built with Electron, Expr
 1.  Go to the **Releases** page of this repository.
 2.  Download the installer executable (`KleanSetup.exe`).
 3.  Double-click `KleanSetup.exe` to run the installation wizard.
+    *   *Note: If Windows SmartScreen blocks execution, click **"More info"** and then **"Run anyway"**.*
 4.  Follow the prompts to complete the installation.
 5.  Right-click the **Klean** shortcut on your Desktop or Start Menu and select **Run as Administrator** (required for deep system optimization).
+    *   *Note: Click **"Yes"** on the User Account Control (UAC) prompt to allow the app to manage system-level cleanup and registry entries.*
 6.  Enjoy a clean and optimized system!
+
+### ⚠️ Windows SmartScreen & UAC Warnings (Why they appear)
+Because Klean is a newly built, open-source utility and is not signed with a paid digital certificate (which requires corporate vetting and significant annual fees), Windows Defender SmartScreen might show a warning. 
+*   **Is it safe?** Yes! The full source code is public and open for audit.
+*   **Why does it need Admin?** Klean requires administrative privileges to perform deep scans/deletions in system folders (`C:\Windows\Installer`, `C:\Windows\Temp`), stop services like Windows Update temporarily to clean caches, and modify startup keys in the system registry.
 
 ---
 

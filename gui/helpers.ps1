@@ -93,20 +93,109 @@ function Get-SystemPerformance {
     if (-not $cpu) { $cpu = 0 }
     $cpuPercent = [math]::Round($cpu)
     
-    $cpuName = (Get-CimInstance Win32_Processor -ErrorAction SilentlyContinue | Select-Object -First 1).Name
+    # Detailed hardware properties
+    $cpuProc = Get-CimInstance Win32_Processor -ErrorAction SilentlyContinue | Select-Object -First 1
+    $cpuName = if ($cpuProc) { $cpuProc.Name } else { "Unknown Processor" }
+    $cpuCores = if ($cpuProc) { $cpuProc.NumberOfCores } else { 0 }
+    $cpuThreads = if ($cpuProc) { $cpuProc.NumberOfLogicalProcessors } else { 0 }
+    $cpuSpeed = if ($cpuProc) { [math]::Round($cpuProc.MaxClockSpeed / 1000, 2) } else { 0 }
+    
+    $ramSpeed = 0
+    try {
+        $mem = Get-CimInstance Win32_PhysicalMemory -ErrorAction SilentlyContinue | Measure-Object -Property Speed -Maximum
+        if ($mem -and $mem.Maximum) { $ramSpeed = $mem.Maximum }
+    } catch {}
+    
+    $gpu = Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | Select-Object -First 1
+    $gpuName = if ($gpu) { $gpu.Name } else { "N/A" }
+    
     $osName = $os.Caption
     $osVersion = $os.Version
+    $osBuild = $os.BuildNumber
+    $osArch = $os.OSArchitecture
     
+    $uptimeStr = "Unknown"
+    if ($os -and $os.LastBootUpTime) {
+        $diff = (Get-Date) - $os.LastBootUpTime
+        $uptimeStr = "$($diff.Days)d $($diff.Hours)h $($diff.Minutes)m"
+    }
+    
+    $ipAddress = "N/A"
+    try {
+        $ip = Get-NetIPAddress -InterfaceAddressFamily IPv4 -AddressState Preferred -ErrorAction SilentlyContinue | 
+              Where-Object { $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" } | 
+              Select-Object -First 1
+        if ($ip) { $ipAddress = $ip.IPAddress }
+    } catch {}
+    
+    # Drives list
+    $drives = @()
+    try {
+        $driveInstances = Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" -ErrorAction SilentlyContinue
+        foreach ($d in $driveInstances) {
+            $dSize = [math]::Round($d.Size / 1GB, 2)
+            $dFree = [math]::Round($d.FreeSpace / 1GB, 2)
+            $dUsed = [math]::Round($dSize - $dFree, 2)
+            $dPercent = if ($dSize -gt 0) { [math]::Round(($dUsed / $dSize) * 100) } else { 0 }
+            $drives += [PSCustomObject]@{
+                id = $d.DeviceID
+                totalGb = $dSize
+                freeGb = $dFree
+                usedGb = $dUsed
+                percentUsed = $dPercent
+            }
+        }
+    } catch {}
+    
+    # Top memory processes
+    $processes = @()
+    try {
+        $procList = Get-Process | Sort-Object WorkingSet64 -Descending -ErrorAction SilentlyContinue | Select-Object -First 5
+        foreach ($p in $procList) {
+            $cpuSec = 0
+            try {
+                if ($p.CPU) { $cpuSec = [math]::Round($p.CPU, 1) }
+            } catch {}
+            $processes += [PSCustomObject]@{
+                id = $p.Id
+                name = $p.Name
+                ramMb = [math]::Round($p.WorkingSet64 / 1MB, 1)
+                cpuTime = $cpuSec
+            }
+         }
+    } catch {}
+
     $obj = [PSCustomObject]@{
         cpuPercent = $cpuPercent
         ramTotalGb = $totalRam
         ramUsedGb = $usedRam
         ramPercent = $percentRam
         cpuModel = $cpuName
+        cpuCores = $cpuCores
+        cpuThreads = $cpuThreads
+        cpuSpeed = $cpuSpeed
+        ramSpeed = $ramSpeed
+        gpuModel = $gpuName
         osName = $osName
         osVersion = $osVersion
+        osBuild = $osBuild
+        osArch = $osArch
+        uptime = $uptimeStr
+        ipAddress = $ipAddress
+        drives = $drives
+        processes = $processes
     }
-    return $obj | ConvertTo-Json -Compress
+    return $obj | ConvertTo-Json -Depth 5 -Compress
+}
+
+function Kill-ProcessByPID($targetId) {
+    try {
+        $id = [int]$targetId
+        Stop-Process -Id $id -Force -ErrorAction Stop
+        Write-Output "SUCCESS: Terminated process with PID $id"
+    } catch {
+        Write-Output "ERROR: Failed to terminate process with PID $targetId. $_"
+    }
 }
 
 # Action router
@@ -114,5 +203,6 @@ switch ($Action) {
     "GetStartup" { Get-StartupPrograms }
     "ToggleStartup" { Toggle-StartupProgram -targetName $Name -targetHive $Hive -isEnable $Enable }
     "GetSystem" { Get-SystemPerformance }
+    "KillProcess" { Kill-ProcessByPID -targetId $Name }
     default { Write-Output "ERROR: Unknown action." }
 }

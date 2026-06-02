@@ -55,6 +55,18 @@ const ramDetailsEl = document.getElementById('ram-details');
 const specOsEl = document.getElementById('spec-os');
 const specCpuEl = document.getElementById('spec-cpu');
 
+// Expanded Monitor Tab Elements
+const specUptimeEl = document.getElementById('spec-uptime');
+const specCpuDetailsEl = document.getElementById('spec-cpu-details');
+const specGpuEl = document.getElementById('spec-gpu');
+const specIpEl = document.getElementById('spec-ip');
+const cpuSpecsShortEl = document.getElementById('cpu-specs-short');
+const ramSpecsShortEl = document.getElementById('ram-specs-short');
+const drivesGridEl = document.getElementById('monitor-drives-grid');
+const processesBodyEl = document.getElementById('monitor-processes-body');
+const cpuCanvas = document.getElementById('cpu-sparkline');
+const ramCanvas = document.getElementById('ram-sparkline');
+
 // DOM Elements - Console & Modals
 const consoleOutput = document.getElementById('console-output');
 const clearConsoleBtn = document.getElementById('clear-console-btn');
@@ -63,9 +75,12 @@ const celebrationModal = document.getElementById('celebration-modal');
 const savedSpaceAmount = document.getElementById('saved-space-amount');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 
-// Initial Setup Constants
+// Initial Setup Constants & Sparkline State
 const GAUGE_CIRCUMFERENCE = 2 * Math.PI * 60; // C: drive ring (r = 60)
-const MONITOR_CIRCUMFERENCE = 2 * Math.PI * 60; // CPU/RAM rings (r = 60)
+const MONITOR_CIRCUMFERENCE = 2 * Math.PI * 40; // CPU/RAM rings (r = 40)
+
+let cpuHistory = Array(20).fill(0);
+let ramHistory = Array(20).fill(0);
 
 if (diskGauge) {
     diskGauge.style.strokeDasharray = GAUGE_CIRCUMFERENCE;
@@ -652,8 +667,20 @@ async function loadSystemMonitor() {
         const data = await response.json();
         
         // Update specs info card
-        if (specOsEl) specOsEl.textContent = data.osName || 'Windows OS';
+        if (specOsEl) {
+            specOsEl.textContent = `${data.osName || 'Windows OS'} (${data.osArch || '64-bit'})`;
+            specOsEl.title = `Build: ${data.osBuild || '--'}, Version: ${data.osVersion || '--'}`;
+        }
+        if (specUptimeEl) specUptimeEl.textContent = data.uptime || '--';
         if (specCpuEl) specCpuEl.textContent = data.cpuModel || 'Processor Intel/AMD';
+        if (specCpuDetailsEl) {
+            specCpuDetailsEl.textContent = `${data.cpuCores || '--'} Cores / ${data.cpuThreads || '--'} Threads`;
+        }
+        if (specGpuEl) specGpuEl.textContent = data.gpuModel || 'N/A';
+        if (specIpEl) specIpEl.textContent = data.ipAddress || 'N/A';
+        
+        if (cpuSpecsShortEl) cpuSpecsShortEl.textContent = `${data.cpuSpeed || '--'} GHz`;
+        if (ramSpecsShortEl) ramSpecsShortEl.textContent = `${data.ramSpeed || '--'} MHz`;
         
         // Update CPU circular indicator
         if (cpuPercentEl) cpuPercentEl.textContent = `${data.cpuPercent}%`;
@@ -671,8 +698,156 @@ async function loadSystemMonitor() {
             const ramOffset = MONITOR_CIRCUMFERENCE - (data.ramPercent / 100) * MONITOR_CIRCUMFERENCE;
             ramGauge.style.strokeDashoffset = ramOffset;
         }
+
+        // Sparklines History Update
+        cpuHistory.push(data.cpuPercent);
+        cpuHistory.shift();
+        
+        ramHistory.push(data.ramPercent);
+        ramHistory.shift();
+
+        // Canvas Drawings
+        let cpuColor = '#00f0ff';
+        let cpuFill = 'rgba(0, 240, 255, 0.15)';
+        if (data.cpuPercent > 80) {
+            cpuColor = '#ff3366';
+            cpuFill = 'rgba(255, 51, 102, 0.15)';
+        } else if (data.cpuPercent > 50) {
+            cpuColor = '#ffaa00';
+            cpuFill = 'rgba(255, 170, 0, 0.15)';
+        }
+
+        let ramColor = '#0066ff';
+        let ramFill = 'rgba(0, 102, 255, 0.15)';
+        if (data.ramPercent > 85) {
+            ramColor = '#ff3366';
+            ramFill = 'rgba(255, 51, 102, 0.15)';
+        } else if (data.ramPercent > 65) {
+            ramColor = '#ffaa00';
+            ramFill = 'rgba(255, 170, 0, 0.15)';
+        }
+
+        drawSparkline(cpuCanvas, cpuHistory, cpuColor, cpuFill);
+        drawSparkline(ramCanvas, ramHistory, ramColor, ramFill);
+
+        // Update connected drives list
+        if (drivesGridEl) {
+            if (data.drives && data.drives.length > 0) {
+                drivesGridEl.innerHTML = data.drives.map(drive => {
+                    let fillClass = 'drive-bar-cyan';
+                    if (drive.percentUsed > 90) fillClass = 'drive-bar-red';
+                    else if (drive.percentUsed > 75) fillClass = 'drive-bar-orange';
+                    
+                    return `
+                        <div class="drive-item">
+                            <div class="drive-title-row">
+                                <span><i class="fa-solid fa-hard-drive text-cyan"></i> <strong>Drive ${drive.id}</strong></span>
+                                <span class="size-val">${drive.percentUsed}%</span>
+                            </div>
+                            <div class="drive-bar-bg">
+                                <div class="drive-bar-fill ${fillClass}" style="width: ${drive.percentUsed}%;"></div>
+                            </div>
+                            <div class="drive-details-row">
+                                <span>Free: ${drive.freeGb.toFixed(1)} GB</span>
+                                <span>Total: ${drive.totalGb.toFixed(0)} GB</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                drivesGridEl.innerHTML = `<div class="text-center text-muted py-2">No logical drives found.</div>`;
+            }
+        }
+
+        // Update processes table
+        if (processesBodyEl) {
+            if (data.processes && data.processes.length > 0) {
+                processesBodyEl.innerHTML = data.processes.map(proc => {
+                    const escapedName = escapeHtml(proc.name).replace(/'/g, "\\'");
+                    return `
+                        <tr>
+                            <td><strong>${escapeHtml(proc.name)}</strong></td>
+                            <td><code>${proc.id}</code></td>
+                            <td style="text-align: right;"><span class="text-cyan">${proc.ramMb.toFixed(1)} MB</span></td>
+                            <td style="text-align: right;"><span class="text-muted">${proc.cpuTime.toFixed(1)}s</span></td>
+                            <td style="text-align: center;">
+                                <button class="kill-btn" onclick="killProcess(${proc.id}, '${escapedName}')" title="End Task">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                processesBodyEl.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No processes loaded.</td></tr>`;
+            }
+        }
     } catch (err) {
         console.error("Failed to run system monitoring:", err);
+    }
+}
+
+function drawSparkline(canvas, data, strokeColor, fillColor) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw area path
+    ctx.beginPath();
+    ctx.moveTo(0, height);
+    for (let i = 0; i < data.length; i++) {
+        const x = (i / (data.length - 1)) * width;
+        const y = height - (data[i] / 100) * (height - 6) - 3;
+        ctx.lineTo(x, y);
+    }
+    ctx.lineTo(width, height);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    
+    // Draw stroke line path
+    ctx.beginPath();
+    for (let i = 0; i < data.length; i++) {
+        const x = (i / (data.length - 1)) * width;
+        const y = height - (data[i] / 100) * (height - 6) - 3;
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    }
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = strokeColor;
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = strokeColor;
+    ctx.stroke();
+    ctx.shadowBlur = 0; // reset shadow
+}
+
+async function killProcess(pid, name) {
+    const confirmed = confirm(`Are you sure you want to end process '${name}' (PID: ${pid})?`);
+    if (!confirmed) return;
+    
+    appendConsoleLine(`[MONITOR] Attempting to end process '${name}' with PID ${pid}...`, 'info');
+    try {
+        const response = await fetch('/api/process/kill', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: pid })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            appendConsoleLine(`[MONITOR] Successfully terminated process '${name}' (${pid}).`, 'success');
+            loadSystemMonitor(); // Refresh immediately
+        } else {
+            appendConsoleLine(`[ERROR] Failed to terminate process: ${result.message}`, 'error');
+        }
+    } catch (err) {
+        appendConsoleLine(`[ERROR] Request failed to terminate process: ${err.message}`, 'error');
     }
 }
 

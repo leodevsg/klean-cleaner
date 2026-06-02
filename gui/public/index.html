@@ -129,12 +129,25 @@
                     <p>Details of the hardware and Windows operating system running on your PC.</p>
                     <div class="sys-specs-list">
                         <div class="spec-item">
-                            <span class="spec-lbl">OS</span>
+                            <span class="spec-lbl">OS Windows</span>
                             <span id="spec-os" class="spec-val">Loading...</span>
                         </div>
                         <div class="spec-item">
-                            <span class="spec-lbl">CPU</span>
+                            <span class="spec-lbl">Uptime</span>
+                            <span id="spec-uptime" class="spec-val">Loading...</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-lbl">Processor (CPU)</span>
                             <span id="spec-cpu" class="spec-val">Loading...</span>
+                            <span id="spec-cpu-details" class="spec-val-sub text-muted" style="font-size: 11px;">-- Cores / -- Threads</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-lbl">Graphics Card (GPU)</span>
+                            <span id="spec-gpu" class="spec-val">Loading...</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-lbl">Active Local IP</span>
+                            <span id="spec-ip" class="spec-val">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -346,40 +359,93 @@
                 </div>
 
                 <!-- Section 4: System Monitor -->
-                <div class="card glass-card checklist-card tab-content-right hide" data-tab="monitor">
+                <div class="card glass-card checklist-card tab-content-right hide" data-tab="monitor" style="display: flex; flex-direction: column;">
                     <div class="card-header">
                         <h2>Real-Time System Performance</h2>
                         <span class="status-msg"><i class="fa-solid fa-pulse fa-heartbeat"></i> Live Monitoring</span>
                     </div>
 
-                    <div class="monitor-dashboard">
-                        <!-- CPU Gauge -->
-                        <div class="monitor-widget">
-                            <h3>CPU Usage</h3>
-                            <div class="gauge-container">
-                                <svg class="progress-ring" width="160" height="160">
-                                    <circle class="progress-ring__circle-bg" stroke="rgba(255, 255, 255, 0.05)" stroke-width="10" fill="transparent" r="60" cx="80" cy="80" />
-                                    <circle id="cpu-gauge" class="progress-ring__circle" stroke="var(--color-cyan)" stroke-width="10" stroke-linecap="round" fill="transparent" r="60" cx="80" cy="80" />
-                                </svg>
-                                <div class="gauge-value">
-                                    <span id="cpu-percent" class="percent text-cyan">0%</span>
+                    <div class="monitor-scroll-container" style="flex: 1; overflow-y: auto; padding-right: 6px; display: flex; flex-direction: column; gap: 20px;">
+                        <div class="monitor-dashboard">
+                            <!-- CPU Widget -->
+                            <div class="monitor-widget">
+                                <div class="widget-title-row">
+                                    <h3>CPU Utilization</h3>
+                                    <span id="cpu-specs-short" class="badge-mini text-cyan">-- GHz</span>
                                 </div>
+                                <div class="widget-content">
+                                    <div class="gauge-container gauge-mini">
+                                        <svg class="progress-ring" width="100" height="100">
+                                            <circle class="progress-ring__circle-bg" stroke="rgba(255, 255, 255, 0.03)" stroke-width="6" fill="transparent" r="40" cx="50" cy="50" />
+                                            <circle id="cpu-gauge" class="progress-ring__circle" stroke="var(--color-cyan)" stroke-width="6" stroke-linecap="round" fill="transparent" r="40" cx="50" cy="50" />
+                                        </svg>
+                                        <div class="gauge-value">
+                                            <span id="cpu-percent" class="percent-mini text-cyan">0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="sparkline-container">
+                                        <canvas id="cpu-sparkline" width="200" height="70"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RAM Widget -->
+                            <div class="monitor-widget">
+                                <div class="widget-title-row">
+                                    <h3>RAM Utilization</h3>
+                                    <span id="ram-specs-short" class="badge-mini text-blue">-- MHz</span>
+                                </div>
+                                <div class="widget-content">
+                                    <div class="gauge-container gauge-mini">
+                                        <svg class="progress-ring" width="100" height="100">
+                                            <circle class="progress-ring__circle-bg" stroke="rgba(255, 255, 255, 0.03)" stroke-width="6" fill="transparent" r="40" cx="50" cy="50" />
+                                            <circle id="ram-gauge" class="progress-ring__circle" stroke="var(--color-blue)" stroke-width="6" stroke-linecap="round" fill="transparent" r="40" cx="50" cy="50" />
+                                        </svg>
+                                        <div class="gauge-value">
+                                            <span id="ram-percent" class="percent-mini text-blue">0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="sparkline-container">
+                                        <canvas id="ram-sparkline" width="200" height="70"></canvas>
+                                    </div>
+                                </div>
+                                <span id="ram-details" class="widget-details">0 GB / 0 GB</span>
                             </div>
                         </div>
 
-                        <!-- RAM Gauge -->
-                        <div class="monitor-widget">
-                            <h3>RAM Usage</h3>
-                            <div class="gauge-container">
-                                <svg class="progress-ring" width="160" height="160">
-                                    <circle class="progress-ring__circle-bg" stroke="rgba(255, 255, 255, 0.05)" stroke-width="10" fill="transparent" r="60" cx="80" cy="80" />
-                                    <circle id="ram-gauge" class="progress-ring__circle" stroke="var(--color-blue)" stroke-width="10" stroke-linecap="round" fill="transparent" r="60" cx="80" cy="80" />
-                                </svg>
-                                <div class="gauge-value">
-                                    <span id="ram-percent" class="percent text-blue">0%</span>
-                                </div>
+                        <!-- Mid Section: Connected Storage Drives -->
+                        <div class="monitor-section">
+                            <div class="monitor-section-header">
+                                <h3><i class="fa-solid fa-hard-drive text-cyan"></i> Active Storage Drives</h3>
                             </div>
-                            <span id="ram-details" class="widget-details">0 GB / 0 GB</span>
+                            <div id="monitor-drives-grid" class="drives-grid">
+                                <div class="text-center text-muted py-2">Scanning drives...</div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Section: Top Memory Consumption Processes -->
+                        <div class="monitor-section">
+                            <div class="monitor-section-header">
+                                <h3><i class="fa-solid fa-list-check text-purple"></i> Top Memory-Consuming Processes</h3>
+                            </div>
+                            <div class="table-container compact-table-container">
+                                <table class="custom-table compact-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Process Name</th>
+                                            <th style="width: 80px;">PID</th>
+                                            <th style="width: 100px; text-align: right;">RAM Usage</th>
+                                            <th style="width: 100px; text-align: right;">CPU Time</th>
+                                            <th style="width: 70px; text-align: center;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="monitor-processes-body">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">Retrieving active processes...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

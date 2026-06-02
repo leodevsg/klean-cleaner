@@ -554,6 +554,30 @@ app.get('/api/system-monitor', (req, res) => {
     });
 });
 
+app.post('/api/process/kill', (req, res) => {
+    const { id } = req.body;
+    if (!id) {
+        return res.status(400).json({ error: 'Process ID is required' });
+    }
+
+    const helperScript = path.join(__dirname, 'helpers.ps1');
+    const ps = spawn('powershell.exe', [
+        '-NoProfile',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', helperScript,
+        '-Action', 'KillProcess',
+        '-Name', String(id)
+    ]);
+
+    let output = '';
+    ps.stdout.on('data', (data) => { output += data.toString(); });
+    ps.on('close', () => {
+        const text = output.trim();
+        const success = text.startsWith('SUCCESS');
+        res.json({ success, message: text });
+    });
+});
+
 // Start Express App
 app.listen(PORT, '127.0.0.1', () => {
     console.log(`Server running at http://127.0.0.1:${PORT}`);
